@@ -16,10 +16,19 @@ export async function POST(request: Request) {
       email
     );
     return Response.json({ ok: true });
-  } catch {
-    return Response.json(
-      { error: "Kayıt başarısız veya e-posta zaten kayıtlı." },
-      { status: 400 }
-    );
+  } catch (e) {
+    // Hatanın UNIQUE constraint violation olup olmadığını kontrol et
+    if (
+      e &&
+      typeof (e as { code?: string }).code === "string" &&
+      (e as { code: string }).code === "SQLITE_CONSTRAINT_PRIMARYKEY"
+    ) {
+      return Response.json(
+        { error: "E-posta zaten kayıtlı." },
+        { status: 400 }
+      );
+    }
+    // Diğer hatalar için genel hata mesajı döndür
+    return Response.json({ error: "Kayıt başarısız." }, { status: 400 });
   }
 }
