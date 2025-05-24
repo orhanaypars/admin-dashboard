@@ -17,7 +17,6 @@ export async function POST(request: Request) {
     );
     return Response.json({ ok: true });
   } catch (e) {
-    // Hatanın UNIQUE constraint violation olup olmadığını kontrol et
     if (
       e &&
       typeof (e as { code?: string }).code === "string" &&
@@ -28,7 +27,24 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    // Diğer hatalar için genel hata mesajı döndür
     return Response.json({ error: "Kayıt başarısız." }, { status: 400 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { email } = await request.json();
+    if (!email) {
+      return Response.json({ error: "E-posta gerekli." }, { status: 400 });
+    }
+    const result = db
+      .prepare("DELETE FROM Yetkililer WHERE Eposta = ?")
+      .run(email);
+    if (result.changes === 0) {
+      return Response.json({ error: "Kayıt bulunamadı." }, { status: 404 });
+    }
+    return Response.json({ ok: true });
+  } catch {
+    return Response.json({ error: "Silme işlemi başarısız." }, { status: 400 });
   }
 }

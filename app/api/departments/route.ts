@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import sql from "mssql";
 
-// MSSQL bağlantı ayarları
 const config = {
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -13,7 +12,6 @@ const config = {
   },
 };
 
-// Ortam değişkenlerinin doğruluğunu kontrol et
 function validateConfig(cfg: typeof config) {
   if (
     !cfg.user ||
@@ -32,7 +30,6 @@ export async function GET() {
   try {
     validateConfig(config);
     const pool = await sql.connect(config);
-    // Tabloyu sadece bir kere oluşturmak için ayrı sorgu gönder
     await pool.request().query(`
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Departments' AND xtype='U')
       CREATE TABLE Departments (

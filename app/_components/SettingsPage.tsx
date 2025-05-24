@@ -10,6 +10,7 @@ function SettingsPage() {
     { name: string; email: string }[]
   >([]);
   const [error, setError] = useState("");
+  const [deletingIdx, setDeletingIdx] = useState<number | null>(null);
 
   const fetchauthorities = async () => {
     const res = await fetch("/api/authorities");
@@ -26,26 +27,46 @@ function SettingsPage() {
     fetchauthorities();
   }, []);
 
-  // Kaydet
   const handleSave = async () => {
     setError("");
     if (!name || !email) {
       setError("Lütfen tüm alanları doldurun.");
       return;
     }
-
     setauthorities([...authorities, { name, email }]);
     setName("");
     setEmail("");
   };
 
+  const handleDelete = async (email: string, idx: number) => {
+    setError("");
+    setDeletingIdx(idx);
+    try {
+      const res = await fetch("/api/authorities", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) {
+        throw new Error("Silme işlemi başarısız.");
+      }
+      setauthorities((prev) => prev.filter((a) => a.email !== email));
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Bir hata oluştu.");
+      }
+    } finally {
+      setDeletingIdx(null);
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row w-full min-h-screen bg-white">
       <Sidebar />
-      {/* Sağ içerik */}
       <main className="flex-1 flex flex-col items-center px-1 sm:px-2 md:px-0">
         <div className="flex flex-col items-start w-full max-w-full md:max-w-4xl mt-4 md:mt-12">
-          {/* Inputlar ve buton responsive hizalı */}
           <div className="flex flex-col md:flex-row w-full gap-2 md:gap-4 mb-3 md:mb-6">
             <input
               type="text"
@@ -74,11 +95,11 @@ function SettingsPage() {
               {error}
             </div>
           )}
-          {/* Liste kutusu */}
           <div className="bg-white rounded-xl md:rounded-2xl p-0 w-full max-w-full md:max-w-3xl shadow-md border border-gray-100">
             <div className="flex px-2 md:px-8 pt-4 md:pt-8 pb-1 md:pb-2 text-gray-400 text-xs md:text-sm font-semibold">
               <div className="flex-1">Adı</div>
               <div className="flex-1">e-Posta Adresi</div>
+              <div className="w-20"></div>
             </div>
             <div className="px-1 md:px-4 pb-2 md:pb-6">
               {authorities.map((user, idx) => (
@@ -98,6 +119,15 @@ function SettingsPage() {
                   </div>
                   <div className="flex-1 text-gray-400 break-words text-xs md:text-base">
                     {user.email}
+                  </div>
+                  <div className="w-20 flex justify-end mt-2 md:mt-0">
+                    <button
+                      className="bg-red-500 text-white px-3 py-1 rounded text-xs md:text-sm hover:bg-red-600 transition disabled:opacity-60"
+                      onClick={() => handleDelete(user.email, idx)}
+                      disabled={deletingIdx === idx}
+                    >
+                      {deletingIdx === idx ? "Siliniyor..." : "Kaldır"}
+                    </button>
                   </div>
                 </div>
               ))}

@@ -17,7 +17,6 @@ function DepartmentPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState("");
 
-  // Departmanları getir
   const fetchDepartments = async () => {
     const res = await fetch("/api/departments");
     let data = await res.json();
@@ -29,7 +28,6 @@ function DepartmentPage() {
     fetchDepartments();
   }, []);
 
-  // Departman ekle
   const handleAdd = async () => {
     setError("");
     if (!name.trim()) {
@@ -49,19 +47,16 @@ function DepartmentPage() {
     }
   };
 
-  // Departman sil
   const handleDelete = async (id: number) => {
     await fetch(`/api/departments/${id}`, { method: "DELETE" });
     fetchDepartments();
   };
 
-  // Düzenleme başlat
   const startEdit = (id: number, currentName: string) => {
     setEditingId(id);
     setEditingName(currentName);
   };
 
-  // Düzenlemeyi kaydet
   const handleEditSave = async (id: number) => {
     if (!editingName.trim()) {
       setError("Departman adı boş olamaz.");
@@ -78,7 +73,6 @@ function DepartmentPage() {
     fetchDepartments();
   };
 
-  // Düzenlemeyi iptal et
   const cancelEdit = () => {
     setEditingId(null);
     setEditingName("");
@@ -90,7 +84,6 @@ function DepartmentPage() {
       <Sidebar />
       <main className="flex-1 flex flex-col items-center px-2 sm:px-4 md:px-0">
         <div className="flex flex-col items-start w-full max-w-full md:max-w-3xl mt-6 md:mt-12">
-          {/* Input ve kaydet */}
           <div className="flex flex-col md:flex-row w-full gap-2 md:gap-4 mb-4 md:mb-6">
             <input
               type="text"
@@ -112,7 +105,6 @@ function DepartmentPage() {
               {error}
             </div>
           )}
-          {/* Liste */}
           <div className="bg-white rounded-xl md:rounded-2xl p-0 w-full max-w-full shadow-md border border-gray-100">
             <div className="flex px-2 md:px-8 pt-4 md:pt-8 pb-1 md:pb-2 text-gray-400 text-xs md:text-sm font-semibold">
               <div className="flex-1">Departman Adı</div>

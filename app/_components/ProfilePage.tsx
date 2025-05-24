@@ -5,8 +5,13 @@ import Image from "next/image";
 import { FiCamera } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 
-function ProfilePage() {
-  const [avatar, setAvatar] = useState<string | null>(null);
+type ProfilePageProps = {
+  onAvatarChange?: (avatar: string | null) => void;
+  avatar?: string | null;
+};
+
+function ProfilePage({ onAvatarChange, avatar: propAvatar }: ProfilePageProps) {
+  const [avatar, setAvatar] = useState<string | null>(propAvatar || null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,10 +24,25 @@ function ProfilePage() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      reader.onload = (ev) => setAvatar(ev.target?.result as string);
+      reader.onload = (ev) => {
+        const newAvatar = ev.target?.result as string;
+        setAvatar(newAvatar);
+        if (onAvatarChange) onAvatarChange(newAvatar);
+        const userStr =
+          typeof window !== "undefined" ? localStorage.getItem("user") : null;
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            user.avatar = newAvatar;
+            localStorage.setItem("user", JSON.stringify(user));
+          } catch {}
+        }
+      };
       reader.readAsDataURL(file);
     }
   };
+
+  const avatarUrl = avatar || "/default-avatar.png";
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -53,6 +73,16 @@ function ProfilePage() {
       setSuccess("Profil güncellendi.");
       setPassword("");
       setPasswordRepeat("");
+      const userStr =
+        typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          user.avatar = avatar;
+          localStorage.setItem("user", JSON.stringify(user));
+        } catch {}
+      }
+      if (onAvatarChange) onAvatarChange(avatar);
     } else {
       setError("Profil güncellenemedi.");
     }
@@ -81,18 +111,23 @@ function ProfilePage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (onAvatarChange) onAvatarChange(avatar);
+  }, [avatar, onAvatarChange]);
+
   return (
-    <div className="flex w-full bg-white">
+    <div className="flex flex-col md:flex-row w-full min-h-screen bg-white">
       <Sidebar />
-      <main className="flex-1 flex flex-col items-center justify-center">
-        <div className="w-full flex flex-col items-center justify-center">
+      <main className="flex-1 flex flex-col items-center justify-center px-2 sm:px-4 md:px-0 py-4">
+        <div className="w-full flex flex-col items-center justify-center max-w-full md:max-w-xl">
           <div className="relative mb-2 flex flex-col items-center">
             <Image
               width={112}
               height={112}
-              src={avatar || "/default-avatar.png"}
+              src={avatarUrl}
               alt="Avatar"
-              className="w-28 h-28 rounded-full object-cover border border-gray-200"
+              className="w-28 h-28 rounded-full object-cover border border-gray-200 cursor-pointer"
+              onClick={handleAvatarClick}
             />
             <button
               type="button"
@@ -117,17 +152,16 @@ function ProfilePage() {
             <input
               type="text"
               placeholder="Ad Soyad"
-              className="border border-teal-300 rounded px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="border border-teal-300 rounded px-3 sm:px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-400 text-xs sm:text-sm md:text-base"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
             <input
               type="email"
               placeholder="E-posta"
-              className="border border-gray-200 rounded px-4 py-2 w-full bg-gray-50 text-gray-400 cursor-not-allowed select-none"
+              className="border border-gray-200 rounded px-3 sm:px-4 py-2 w-full text-xs sm:text-sm md:text-base"
               value={email}
-              readOnly
-              tabIndex={-1}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="flex flex-col items-center w-full max-w-xs gap-1 mb-8">
@@ -137,22 +171,30 @@ function ProfilePage() {
             <input
               type="password"
               placeholder="Yeni Şifre"
-              className="border border-gray-200 rounded px-4 py-2 w-full"
+              className="border border-gray-200 rounded px-3 sm:px-4 py-2 w-full text-xs sm:text-sm md:text-base"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
             <input
               type="password"
               placeholder="Yeni Şifre Tekrarı"
-              className="border border-gray-200 rounded px-4 py-2 w-full"
+              className="border border-gray-200 rounded px-3 sm:px-4 py-2 w-full text-xs sm:text-sm md:text-base"
               value={passwordRepeat}
               onChange={(e) => setPasswordRepeat(e.target.value)}
             />
           </div>
-          {error && <div className="text-red-500 mb-2">{error}</div>}
-          {success && <div className="text-green-500 mb-2">{success}</div>}
+          {error && (
+            <div className="text-red-500 mb-2 text-xs sm:text-sm md:text-base">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="text-green-500 mb-2 text-xs sm:text-sm md:text-base">
+              {success}
+            </div>
+          )}
           <button
-            className="bg-teal-500 text-white px-8 py-2 rounded font-semibold hover:bg-teal-600 transition w-full max-w-xs"
+            className="bg-teal-500 text-white px-6 sm:px-8 py-2 rounded font-semibold hover:bg-teal-600 transition w-full max-w-xs text-xs sm:text-sm md:text-base"
             onClick={handleSave}
           >
             Kaydet

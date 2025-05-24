@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
-const avatarUrl = "https://i.pravatar.cc/32";
+export const avatarUrl = "https://i.pravatar.cc/";
 
 const navLinks = [
   { name: "Pano", href: "/dashboard" },
@@ -11,8 +11,26 @@ const navLinks = [
   { name: "Ayarlar", href: "/settings" },
 ];
 
-function Navbar() {
+type NavbarProps = {
+  avatar?: string | null;
+};
+
+function Navbar({ avatar }: NavbarProps) {
   const [active, setActive] = useState("/pano");
+  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!avatar) {
+      const userStr =
+        typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user.avatar) setLocalAvatar(user.avatar);
+        } catch {}
+      }
+    }
+  }, [avatar]);
 
   return (
     <nav className="bg-teal-500 px-10 flex items-center justify-between">
@@ -35,7 +53,7 @@ function Navbar() {
         <Image
           width={32}
           height={32}
-          src={avatarUrl}
+          src={avatar || localAvatar || avatarUrl}
           alt="Avatar"
           className="w-8 h-8 rounded-full border-2 border-white ml-2"
         />
