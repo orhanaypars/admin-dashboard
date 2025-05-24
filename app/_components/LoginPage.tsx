@@ -92,6 +92,15 @@ function LoginPage() {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
+          <div className="mb-2">
+            <Link
+              href="/resetpassword"
+              className="text-xs text-teal-800 hover:underline"
+              style={{ display: "inline-block" }}
+            >
+              Şifremi unuttum
+            </Link>
+          </div>
           {error && <div className="text-red-300 text-sm">{error}</div>}
           <div className="flex flex-col sm:flex-row gap-2">
             <Link
